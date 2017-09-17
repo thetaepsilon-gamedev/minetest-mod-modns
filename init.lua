@@ -1,4 +1,4 @@
-if _G["modns"] then error("modns should not already be defined") end
+if minetest.global_exists("modns") then error("modns should not already be defined") end
 local registered = {}
 local checkpath = function(path)
 	if type(path) ~= "string" then error("component path must be a string") end
