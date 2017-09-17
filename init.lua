@@ -25,7 +25,7 @@ modns = {
 	end,
 	get = function(path)
 		checkpath(path)
-		exists = registered[path]
+		local exists = registered[path]
 		if not exists then error("component does not exist: "..path) end
 		logaction(log_trace, "component "..path.." retrieved by mod "..minetest.get_current_modname())
 		return exists
