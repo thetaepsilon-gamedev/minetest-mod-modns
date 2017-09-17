@@ -19,6 +19,7 @@ modns = {
 	register = function(path, component)
 		checkpath(path)
 		if registered[path] then error("duplicate component registration for "..path) end
+		if component == nil then error("component cannot be nil") end
 		registered[path] = component
 		logaction(log_trace, "component "..path.." set by mod "..minetest.get_current_modname()..": "..tostring(component))
 	end,
