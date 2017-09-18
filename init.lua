@@ -1,5 +1,6 @@
 if minetest.global_exists("modns") then error("modns should not already be defined") end
 local registered = {}
+local constructors = {}
 local checkpath = function(path)
 	if type(path) ~= "string" then error("component path must be a string") end
 end
@@ -15,6 +16,12 @@ end
 
 
 
+local checkexists = function(path)
+	return (not registered[path]) and (not constructors[path])
+end
+
+
+
 modns = {
 	register = function(path, component)
 		checkpath(path)
@@ -25,7 +32,7 @@ modns = {
 	end,
 	get = function(path)
 		checkpath(path)
-		local exists = registered[path]
+		local exists = checkexists(path)
 		if not exists then error("component does not exist: "..path) end
 		logaction(log_trace, "component "..path.." retrieved by mod "..minetest.get_current_modname())
 		return exists
