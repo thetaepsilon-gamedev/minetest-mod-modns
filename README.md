@@ -22,5 +22,9 @@ modns.get() will throw an error() if the component does not exist instead of ret
 so you'll immediately know what's happened if you made a typo in the component name or forgot to update depends.txt.
 optdepends can be safely probed with modns.check().
 
+* Optional use of constructor functions:
+passing a function (likely one which acts as a closure) to modns.register will cause modns to call that function and return the result when modns.get() is invoked.
+The callers therefore don't notice if you have one instance or many
+(e.g. to keep track of callers by means of minetest.get\_current\_modname() or similar).
 
 API doc Coming Soon.
