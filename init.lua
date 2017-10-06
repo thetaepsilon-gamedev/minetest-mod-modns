@@ -27,7 +27,7 @@ modns = {
 		checkpath(path)
 		if checkexists(path) then error("duplicate component registration for "..path) end
 		local comptype = type(component)
-		local invoker = minetest.get_current_modname()
+		local invoker = tostring(minetest.get_current_modname())
 		if comptype == "function" then
 			constructors[path] = component
 			logaction(log_trace, "constructor function registered for component "..path.." by mod "..invoker)
@@ -48,7 +48,7 @@ modns = {
 	end,
 	get = function(path)
 		checkpath(path)
-		local invoker = minetest.get_current_modname()
+		local invoker = tostring(minetest.get_current_modname())
 		local result
 		local fn = constructors[path]
 
