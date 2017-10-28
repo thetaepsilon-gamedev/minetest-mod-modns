@@ -17,6 +17,8 @@ local logaction = function(severity, msg)
 	print("[modns] ["..severity.."] "..msg)
 end
 
+local deepcopy = table.copy
+
 
 
 local checkexists = function(path)
@@ -89,13 +91,14 @@ modns = {
 		end
 
 		if fn then
+			-- note that it is the constructor's responsiblity to perform defensive copies.
 			logaccess("running object constructor")
 			result = fn()
 		else
 			local obj = registered[path]
 			if obj then
 				logaccess("retrieving mod object")
-				result = obj
+				result = deepcopy(obj)
 			else
 				logaction(log_error, "mod "..invoker.." tried to retrieve non-existant component "..path)
 				error("modns.get(): component "..path.." does not exist")
@@ -113,7 +116,8 @@ modns = {
 	check = function(path)
 		checkpath(path)
 		return checkexists(path)
-	end
+	end,
+	deepcopy = deepcopy,
 }
 
 minetest.log("info", "modns interface now exported")
