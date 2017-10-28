@@ -2,6 +2,7 @@ if minetest.global_exists("modns") then error("modns should not already be defin
 local registered = {}
 local constructors = {}
 local compat = {}
+local deprecated = {}
 local checkpath = function(path)
 	if type(path) ~= "string" then error("component path must be a string") end
 end
@@ -22,10 +23,15 @@ local checkexists = function(path)
 	return (registered[path] ~= nil) or (constructors[path] ~= nil) or (compat[path] ~= nil)
 end
 
+local handledeprecated = function(path, isdeprecated)
+	if isdeprecated then
+		deprecated[path] = true
+	end
+end
 
 
 modns = {
-	register = function(path, component)
+	register = function(path, component, isdeprecated)
 		checkpath(path)
 		if checkexists(path) then error("duplicate component registration for "..path) end
 		local comptype = type(component)
@@ -40,6 +46,7 @@ modns = {
 			logaction(log_error, "mod "..invoker.." tried to register an unknown object of type "..comptype)
 			error("modns.register(): unrecognised object type "..comptype)
 		end
+		handledeprecated(path, isdeprecated)
 
 		--[[
 		-- old code here from before constructor functions were added
@@ -59,6 +66,7 @@ modns = {
 		local invoker = tostring(minetest.get_current_modname())
 		logaction(log_trace, invoker.." registered a compatability alias making "..totarget.." appear as "..path)
 		compat[path] = totarget
+		handledeprecated(path, isdeprecated)
 	end,
 	get = function(path)
 		checkpath(path)
@@ -70,6 +78,10 @@ modns = {
 		-- woo, nested functions!
 		local logaccess = function(msg)
 			logaction(log_trace, "component "..path.." requested by "..invoker..": "..msg)
+		end
+
+		if deprecated[path] then
+			logaction(log_warning, "component "..path.." has been marked deprecated!")
 		end
 
 		if compat_alias then
