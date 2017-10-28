@@ -1,6 +1,7 @@
 if minetest.global_exists("modns") then error("modns should not already be defined") end
 local registered = {}
 local constructors = {}
+local compat = {}
 local checkpath = function(path)
 	if type(path) ~= "string" then error("component path must be a string") end
 end
@@ -10,6 +11,7 @@ end
 -- I'm thinking of putting this in it's own mod.
 local log_trace = "trace"
 local log_error = "error"
+local log_warning = "warning"
 local logaction = function(severity, msg)
 	print("[modns] ["..severity.."] "..msg)
 end
@@ -17,7 +19,7 @@ end
 
 
 local checkexists = function(path)
-	return (registered[path] ~= nil) or (constructors[path] ~= nil)
+	return (registered[path] ~= nil) or (constructors[path] ~= nil) or (compat[path] ~= nil)
 end
 
 
@@ -46,15 +48,32 @@ modns = {
 		logaction(log_trace, "component "..path.." set by mod "..minetest.get_current_modname()..": "..tostring(component))
 		]]
 	end,
+	register_compat_alias = function(path, totarget, isdeprecated)
+		local aliaserror = function(msg)
+			error("compatability alias from "..path.." to real target "..totarget.." "..msg)
+		end
+		checkpath(path)
+		checkpath(totarget)
+		if checkexists(path) then aliaserror("conflicts with an existing component") end
+		if not checkexists(totarget) then aliaserror("does not reference an existing component!") end
+		local invoker = tostring(minetest.get_current_modname())
+		logaction(log_trace, invoker.." registered a compatability alias making "..totarget.." appear as "..path)
+		compat[path] = totarget
+	end,
 	get = function(path)
 		checkpath(path)
 		local invoker = tostring(minetest.get_current_modname())
 		local result
+		local compat_alias = compat[path]
 		local fn = constructors[path]
 
 		-- woo, nested functions!
 		local logaccess = function(msg)
 			logaction(log_trace, "component "..path.." requested by "..invoker..": "..msg)
+		end
+
+		if compat_alias then
+			return get(compat_alias)
 		end
 
 		if fn then
