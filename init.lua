@@ -7,6 +7,10 @@ local checkpath = function(path)
 	if type(path) ~= "string" then error("component path must be a string") end
 end
 
+local modname = minetest.get_current_modname()
+local dirsep = "/"
+local modpath = minetest.get_modpath(modname)..dirsep
+
 
 
 -- I'm thinking of putting this in it's own mod.
@@ -19,7 +23,7 @@ end
 
 local deepcopy = table.copy
 
-
+local tvisit = dofile(modpath.."tvisit.lua")
 
 local checkexists = function(path)
 	return (registered[path] ~= nil) or (constructors[path] ~= nil) or (compat[path] ~= nil)
