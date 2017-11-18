@@ -43,6 +43,44 @@ local register = function(path, component, isdeprecated, invoker)
 	handledeprecated(path, isdeprecated)
 end
 
+-- "require" equivalent for MT mods, performs lookup and retreival.
+-- lint note: intentional global assigmnent
+mtrequire = function(path)
+	checkpath(path)
+	local invoker = tostring(minetest.get_current_modname())
+	local result
+	local compat_alias = compat[path]
+	local fn = constructors[path]
+
+	-- woo, nested functions!
+	local logaccess = function(msg)
+		logaction(log_trace, "component "..path.." requested by "..invoker..": "..msg)
+	end
+
+	if deprecated[path] then
+		logaction(log_warning, "component "..path.." has been marked deprecated!")
+	end
+
+	if compat_alias then
+		return get(compat_alias)
+	end
+
+	if fn then
+		-- note that it is the constructor's responsiblity to perform defensive copies in this case.
+		logaccess("running object constructor")
+		result = fn()
+	else
+		local obj = registered[path]
+		if obj then
+			logaccess("retrieving mod object")
+			result = deepcopy(obj)
+		else
+			logaction(log_error, "mod "..invoker.." tried to retrieve non-existant component "..path)
+			error("component "..path.." does not exist")
+		end
+	end
+	return result
+end
 
 
 
@@ -94,49 +132,7 @@ modns = {
 		compat[path] = totarget
 		handledeprecated(path, isdeprecated)
 	end,
-	get = function(path)
-		checkpath(path)
-		local invoker = tostring(minetest.get_current_modname())
-		local result
-		local compat_alias = compat[path]
-		local fn = constructors[path]
-
-		-- woo, nested functions!
-		local logaccess = function(msg)
-			logaction(log_trace, "component "..path.." requested by "..invoker..": "..msg)
-		end
-
-		if deprecated[path] then
-			logaction(log_warning, "component "..path.." has been marked deprecated!")
-		end
-
-		if compat_alias then
-			return get(compat_alias)
-		end
-
-		if fn then
-			-- note that it is the constructor's responsiblity to perform defensive copies.
-			logaccess("running object constructor")
-			result = fn()
-		else
-			local obj = registered[path]
-			if obj then
-				logaccess("retrieving mod object")
-				result = deepcopy(obj)
-			else
-				logaction(log_error, "mod "..invoker.." tried to retrieve non-existant component "..path)
-				error("modns.get(): component "..path.." does not exist")
-			end
-		end
-		return result
-
-		--[[
-		local exists = checkexists(path)
-		if not exists then error("component does not exist: "..path) end
-		logaction(log_trace, "component "..path.." retrieved by mod "..minetest.get_current_modname())
-		return exists
-		]]
-	end,
+	get = mtrequire,
 	check = function(path)
 		checkpath(path)
 		return checkexists(path)
