@@ -35,9 +35,27 @@ local handledeprecated = function(path, isdeprecated)
 	end
 end
 
+-- internal single-component registration.
+local register = function(path, component, isdeprecated, invoker)
+	checkpath(path)
+	if checkexists(path) then error("duplicate component registration for "..path.." by "..invoker) end
+	registered[path] = component
+	handledeprecated(path, isdeprecated)
+end
+
+
+
 
 modns = {
-	register = function(path, component, isdeprecated)
+	register = function(path, component, isdeprecated, opts)
+		if not opts then opts = {} end
+		local sep = opts.pathsep
+		if not sep then
+			sep = "."
+		else
+			if type(sep) ~= "string" then error("path separator not a string!") end
+		end
+
 		checkpath(path)
 		if checkexists(path) then error("duplicate component registration for "..path) end
 		local comptype = type(component)
@@ -46,7 +64,9 @@ modns = {
 			constructors[path] = component
 			logaction(log_trace, "constructor function registered for component "..path.." by mod "..invoker)
 		elseif comptype == "table" then
-			registered[path] = component
+			-- search recursively inside the passed table to find sub-namespaces.
+			local visitor = function(label, object) register(label, object, isdeprecated, invoker) end
+			tvisit(component, path, sep, visitor)
 			logaction(log_trace, "mod object registered for component "..path.." by mod "..invoker)
 		else
 			logaction(log_error, "mod "..invoker.." tried to register an unknown object of type "..comptype)
