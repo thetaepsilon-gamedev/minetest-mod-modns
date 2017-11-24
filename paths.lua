@@ -28,7 +28,13 @@ local uri_handler = function(path)
 	if #path == 0 then return nil end
 	return { path }
 end
-enum_pathtype.uri = { label="uri", matchpattern=urimatch, handler=uri_handler }
+local uri_tostring = function(path, length) return path[1] end
+enum_pathtype.uri = {
+	label="uri",
+	matchpattern=urimatch,
+	handler=uri_handler,
+	tostring=uri_tostring,
+}
 
 
 
@@ -48,10 +54,14 @@ local java_handler = function(path)
 	end
 	return tokens
 end
+local java_tostring = function(path, length)
+	return table.concat(path, ".", 1, length)
+end
 enum_pathtype.java = {
 	label="java",
 	matchpattern=javamatch,
 	handler=java_handler,
+	tostring=java_tostring,
 }
 
 
