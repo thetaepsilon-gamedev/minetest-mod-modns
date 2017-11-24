@@ -126,8 +126,9 @@ interface.locate_mod = locate_mod
 
 
 
-local locatemodself = function(self, modname)
-	return locate_mod(self.entries, modname)
+local locatemodself = function(self, pathstr)
+	local result = paths.parse(pathstr, "mod lookup path")
+	return locate_mod(self.entries, result.tokens), result
 end
 
 local reserveself = function(self, pathstring, modname)
