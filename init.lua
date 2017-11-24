@@ -61,6 +61,17 @@ local modpathioimpl = {
 local prefixes = reservations.new({debugger=debugger})
 reservations.populate(prefixes, minetest.get_modnames(), modpathioimpl)
 
+-- check a path's validity and return the mod name that reserves it, if any.
+-- returns the same as reservations:locate(),
+-- namely found mod if any, closest prefix length, and parse result.
+-- TODO: enable this when issues with automatic sub-component traversal are fixed.
+--[[
+local checkpath = function(path)
+	if type(path) ~= "string" then error("component path must be a string") end
+	return prefixes:locate(path)
+end
+]]
+
 
 
 -- internal single-component registration.
