@@ -34,6 +34,18 @@ local handledeprecated = function(path, isdeprecated)
 	end
 end
 
+
+
+-- WIP
+-- early start-up: check all installed mods for any namespace declarations.
+-- mod conflicts cause errors; they should pick a unique namespace for themselves.
+-- TODO: guidelines document
+_modpath = modpath
+local reservations = dofile(modpath.."reservations.lua")
+_modpath = nil
+
+
+
 -- internal single-component registration.
 local register = function(path, component, isdeprecated, invoker)
 	checkpath(path)
