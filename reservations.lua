@@ -109,4 +109,24 @@ interface.new = construct
 
 
 
+-- an example ioimpl for the above which attempts loads from a table of directories.
+-- the lua built-in io operations are used to do this.
+-- this should not be used within minetest itself;
+-- see init.lua for a version which uses minetest get_modpath() operations to do the same.
+-- in particular, this on it's own does no auto-detection of mods and modpack directories,
+-- as unfortunately the common denominator of lua lacks the facility to list directories.
+local extio_try_load = function(self, modname, filename)
+	local sep = self.dirsep
+	local entry = self.paths[modname]
+	if entry then return io.open(entry..sep..filename, "r") end
+end
+local mk_extio = function(paths, osdirsep)
+	local self = { paths=paths, dirsep=osdirsep}
+	self.open = extio_try_load
+	return self
+end
+interface.mk_extio = mk_extio
+
+
+
 return interface
