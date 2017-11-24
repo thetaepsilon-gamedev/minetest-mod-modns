@@ -78,7 +78,7 @@ local classifypath = function(path, label)
 			if type(result) == "table" then return { type=enum, tokens=result } end
 		end
 	end
-	error(label.." did not match any known types of component path")
+	error(label.." "..string.format("%q", path).." did not match any known types of component path")
 end
 interface.parse = classifypath
 
