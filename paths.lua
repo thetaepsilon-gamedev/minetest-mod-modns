@@ -65,7 +65,7 @@ local classifypath = function(path, label)
 		if path:find(enum.matchpattern) == 1 then
 			-- run the handler function to check that the initial classification check was correct.
 			local result = enum.handler(path)
-			if type(result) == "table" then return result end
+			if type(result) == "table" then return { type=enum, tokens=result } end
 		end
 	end
 	error(label.." did not match any known types of component path")
