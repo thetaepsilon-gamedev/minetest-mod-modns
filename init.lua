@@ -19,6 +19,16 @@ local log_warning = "warning"
 local logaction = function(severity, msg)
 	print("[modns] ["..severity.."] "..msg)
 end
+-- simplified form of the logging system found in libmtlog.
+local debugger = function(ev)
+	local args = ""
+	if ev.args then
+		for k, v in pairs(ev.args) do
+			args = args.." "..k.."="..string.format("%q", v)
+		end
+	end
+	logaction(log_trace, ev.n..args)
+end
 
 local deepcopy = table.copy
 
@@ -48,7 +58,7 @@ local modpathioimpl = {
 		return io.open(minetest.get_modpath(modname)..dirsep..filename, "r")
 	end
 }
-local prefixes = reservations.new()
+local prefixes = reservations.new({debugger=debugger})
 reservations.populate(prefixes, minetest.get_modnames(), modpathioimpl)
 
 

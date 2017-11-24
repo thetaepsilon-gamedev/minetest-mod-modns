@@ -137,15 +137,21 @@ local reserveself = function(self, pathstring, modname)
 	local result = paths.parse(pathstring, label)
 	-- try to reserve this path or fail
 	try_reserve(self.entries, result.tokens, result.type.tostring, modname)
+	self.debugger({n="modns.reservation", args={mod=modname, path=pathstring}})
 	return true
 end
 
-local construct = function()
+local construct = function(opts)
+	if not opts then opts = {} end
+	local debugger = opts.debugger
+	if not debugger then debugger = function() end end
+	
 	local self = {}
 	local entries = {}
 	self.entries = entries
 	self.locate = locatemodself
 	self.reserve = reserveself
+	self.debugger = debugger
 
 	return self
 end
