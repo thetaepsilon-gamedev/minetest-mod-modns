@@ -88,10 +88,53 @@ interface.try_reserve = try_reserve
 
 
 
+-- look up the mod that should contain a given path.
+-- tries to find the first mod that has reserved the longest prefix of the given path.
+-- returns the mod name or nil for not found.
+-- also returns a second argument, number of matched path components:
+-- on success, the number of components matched in path;
+-- on failure, the number of components that did match before one component didn't.
+local locate_mod = function(toplevel, path)
+	local dname = "locate_mod() "
+	local depth = #path
+	if depth < 1 then error(dname.."was passed a zero-sized path") end
+
+	local index = 1
+	local current = toplevel
+	local isexact = function() return (index == depth) end
+
+	local result = nil
+	while true do
+		local key = path[index]
+		local sub = current[key]
+		local t = type(sub)
+		if t == "string" then
+			return sub, index
+		elseif t ~= "table" then
+			return nil, index-1
+		end
+		-- error out if we are at the end of the path and there isn't an exact match.
+		if index == depth then return nil, index end
+
+		-- note that if we reach here and no error but not yet found,
+		-- we found a sub-level to go into.
+		current = sub
+		index = index + 1
+	end
+end
+interface.locate_mod = locate_mod
+
+
+
+local locatemodself = function(self, modname)
+	return locate_mod(self.entries, modname)
+end
+
 local construct = function(modlist, ioimpl)
 	local self = {}
 	local entries = {}
 	self.entries = entries
+	self.locate = locatemodself
 
 	for index, modname in ipairs(modlist) do
 		local label = "namespace reservation [in mod "..modname.."]"
