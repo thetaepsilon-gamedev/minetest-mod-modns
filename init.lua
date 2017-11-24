@@ -122,10 +122,13 @@ modns = {
 			if type(sep) ~= "string" then error("path separator not a string!") end
 		end
 
-		checkpath(path)
+		local owner, prefixlength, parsed = checkpath(path)
 		if checkexists(path) then error("duplicate component registration for "..path) end
 		local comptype = type(component)
 		local invoker = tostring(minetest.get_current_modname())
+		if owner ~= nil and owner ~= invoker then
+			error("mod "..invoker.." tried to register "..path.." but that path is reserved by "..owner)
+		end
 		if comptype == "table" then
 			register(path, component, isdeprecated, invoker)
 			logaction(log_trace, "mod object registered for component "..path.." by mod "..invoker)
