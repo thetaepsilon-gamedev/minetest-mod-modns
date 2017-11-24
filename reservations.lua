@@ -130,25 +130,36 @@ local locatemodself = function(self, modname)
 	return locate_mod(self.entries, modname)
 end
 
-local construct = function(modlist, ioimpl)
+local reserveself = function(self, pathstring, modname)
+	local label = "namespace reservation [in mod "..modname.."]"
+	-- this throws on a bad component path so no need to nil check.
+	-- mods really should make sure these are valid and correct.
+	local result = paths.parse(pathstring, label)
+	-- try to reserve this path or fail
+	try_reserve(self.entries, result.tokens, result.type.tostring, modname)
+	return true
+end
+
+local construct = function()
 	local self = {}
 	local entries = {}
 	self.entries = entries
 	self.locate = locatemodself
+	self.reserve = reserveself
 
+	return self
+end
+interface.new = construct
+
+local populate_reservations = function(reservations, modlist, ioimpl)
 	for index, modname in ipairs(modlist) do
-		local label = "namespace reservation [in mod "..modname.."]"
 		local file = ioimpl:open(modname, "reserved-namespaces.txt")
 		if file ~= nil then for entry in file:lines() do
-			-- this throws on a bad component path so no need to nil check.
-			-- mods really should make sure these are valid and correct.
-			local result = paths.parse(entry, label)
-			-- try to reserve this path or fail
-			try_reserve(entries, result.tokens, result.type.tostring, modname)
+			reservations:reserve(entry, modname)
 		end end
 	end
 end
-interface.new = construct
+interface.populate = populate_reservations
 
 
 

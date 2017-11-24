@@ -48,7 +48,8 @@ local modpathioimpl = {
 		return io.open(minetest.get_modpath(modname)..dirsep..filename, "r")
 	end
 }
-local prefixes = reservations.new(minetest.get_modnames(), modpathioimpl)
+local prefixes = reservations.new()
+reservations.populate(prefixes, minetest.get_modnames(), modpathioimpl)
 
 
 
