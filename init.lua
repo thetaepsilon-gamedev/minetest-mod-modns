@@ -1,6 +1,5 @@
 if minetest.global_exists("modns") then error("modns should not already be defined") end
 local registered = {}
-local constructors = {}
 local compat = {}
 local deprecated = {}
 local checkpath = function(path)
@@ -26,7 +25,7 @@ local deepcopy = table.copy
 local tvisit = dofile(modpath.."tvisit.lua")
 
 local checkexists = function(path)
-	return (registered[path] ~= nil) or (constructors[path] ~= nil) or (compat[path] ~= nil)
+	return (registered[path] ~= nil) or (compat[path] ~= nil)
 end
 
 local handledeprecated = function(path, isdeprecated)
@@ -50,7 +49,6 @@ mtrequire = function(path)
 	local invoker = tostring(minetest.get_current_modname())
 	local result
 	local compat_alias = compat[path]
-	local fn = constructors[path]
 
 	-- woo, nested functions!
 	local logaccess = function(msg)
@@ -65,20 +63,15 @@ mtrequire = function(path)
 		return get(compat_alias)
 	end
 
-	if fn then
-		-- note that it is the constructor's responsiblity to perform defensive copies in this case.
-		logaccess("running object constructor")
-		result = fn()
+	local obj = registered[path]
+	if obj then
+		logaccess("retrieving mod object")
+		result = deepcopy(obj)
 	else
-		local obj = registered[path]
-		if obj then
-			logaccess("retrieving mod object")
-			result = deepcopy(obj)
-		else
-			logaction(log_error, "mod "..invoker.." tried to retrieve non-existant component "..path)
-			error("component "..path.." does not exist")
-		end
+		logaction(log_error, "mod "..invoker.." tried to retrieve non-existant component "..path)
+		error("component "..path.." does not exist")
 	end
+
 	return result
 end
 
@@ -98,10 +91,7 @@ modns = {
 		if checkexists(path) then error("duplicate component registration for "..path) end
 		local comptype = type(component)
 		local invoker = tostring(minetest.get_current_modname())
-		if comptype == "function" then
-			constructors[path] = component
-			logaction(log_trace, "constructor function registered for component "..path.." by mod "..invoker)
-		elseif comptype == "table" then
+		if comptype == "table" then
 			-- search recursively inside the passed table to find sub-namespaces.
 			local visitor = function(label, object) register(label, object, isdeprecated, invoker) end
 			tvisit(component, path, sep, visitor)
@@ -111,13 +101,6 @@ modns = {
 			error("modns.register(): unrecognised object type "..comptype)
 		end
 		handledeprecated(path, isdeprecated)
-
-		--[[
-		-- old code here from before constructor functions were added
-		if component == nil then error("component cannot be nil") end
-		registered[path] = component
-		logaction(log_trace, "component "..path.." set by mod "..minetest.get_current_modname()..": "..tostring(component))
-		]]
 	end,
 	register_compat_alias = function(path, totarget, isdeprecated)
 		local aliaserror = function(msg)
