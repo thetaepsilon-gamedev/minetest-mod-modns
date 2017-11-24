@@ -1,7 +1,7 @@
 local interface = {}
 interface.patterns = {}
 
-local strutil = dofile("strutil.lua")
+local strutil = dofile(_modpath.."strutil.lua")
 
 -- component type matching
 -- return an enum identifier depending on classification.
