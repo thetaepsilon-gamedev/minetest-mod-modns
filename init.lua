@@ -43,6 +43,12 @@ end
 _modpath = modpath
 local reservations = dofile(modpath.."reservations.lua")
 _modpath = nil
+local modpathioimpl = {
+	open = function(self, modname, filename)
+		return io.open(minetest.get_modpath(modname)..dirsep..filename, "r")
+	end
+}
+local prefixes = reservations.new(minetest.get_modnames(), modpathioimpl)
 
 
 
