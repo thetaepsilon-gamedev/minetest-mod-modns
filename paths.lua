@@ -58,8 +58,9 @@ enum_pathtype.java = {
 
 -- classify a path by looking for different path pattern types.
 -- if this succeeds, a hierachical list of tokens is returned.
-local classifypath = function(path)
-	if type(path) ~= "string" then error("component path must be a string") end
+local classifypath = function(path, label)
+	if not label then label = "component path" end
+	if type(path) ~= "string" then error(label.." must be a string") end
 	for _, enum in pairs(enum_pathtype) do
 		if path:find(enum.matchpattern) == 1 then
 			-- run the handler function to check that the initial classification check was correct.
@@ -67,7 +68,7 @@ local classifypath = function(path)
 			if type(result) == "table" then return result end
 		end
 	end
-	error("component path did not match any known types")
+	error(label.." did not match any known types of component path")
 end
 interface.parse = classifypath
 
