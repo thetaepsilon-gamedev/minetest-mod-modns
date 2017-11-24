@@ -132,9 +132,7 @@ modns = {
 		local comptype = type(component)
 		local invoker = tostring(minetest.get_current_modname())
 		if comptype == "table" then
-			-- search recursively inside the passed table to find sub-namespaces.
-			local visitor = function(label, object) register(label, object, isdeprecated, invoker) end
-			tvisit(component, path, sep, visitor)
+			register(path, component, isdeprecated, invoker)
 			logaction(log_trace, "mod object registered for component "..path.." by mod "..invoker)
 		else
 			logaction(log_error, "mod "..invoker.." tried to register an unknown object of type "..comptype)
