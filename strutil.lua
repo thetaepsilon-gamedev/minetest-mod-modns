@@ -37,4 +37,24 @@ local mk_byte_iterator = function(str)
 end
 interface.mk_byte_iterator = mk_byte_iterator
 
+-- string "escaper".
+-- characters that don't match a valid range are escaped using the escape char
+-- (which must NOT appear in the allowed set),
+-- by writing the escape char followed by the byte's hex code to the resulting string.
+local escape = function(str, validset, escapechar)
+	local result = ""
+	for char in mk_byte_iterator(str) do
+		local encoded
+		if not char:match(validset) then
+			local code = char:byte(1, 1)
+			encoded = string.format("%s%02x", escapechar, code)
+		else
+			encoded = char
+		end
+		result = result..encoded
+	end
+	return result
+end
+interface.escape = escape
+
 return interface
