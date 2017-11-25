@@ -8,6 +8,8 @@
 -- this object will take care of loading components as needed.
 -- it supports those component scripts requesting others in turn
 -- (detected cycles cause a hard error).
+-- for the interfaces needed of these impl dependencies,
+-- scroll down to the "Documentation for dependencies" comment block.
 
 --[[
 * Where possible, it is encouraged that mods split apart portable code and code which accesses MT apis.
@@ -235,6 +237,44 @@ local getcomponent = function(self, pathstring)
 		error(result)
 	end
 end
+
+
+
+--[[
+Documentation for dependencies and their interfaces needed in the constructor's impl table
+
+impl.fileloader: used to load script files from an absolute path.
+	:load(filename)
+		essentially dofile(), returns the result of executing the given file name.
+
+impl.filetester: used to determine if a file exists -
+	search moves onto other possibilities if not.
+	:exists(filename)
+		returns true if filename can be loaded by fileloader, false otherwise.
+
+impl.reservations: expected to be an instance of the files created in reservations.lua.
+	used to check which mod should contain the file for a given component.
+
+impl.modpathfinder: gets the full directory path for a given mod.
+	:get(modname)	returns full path or nil if the given mod didn't exist.
+
+impl.dirpathsep: a string which must contain the character the current OS uses for directory separators in file paths.
+
+Other dependencies and optional components:
+* The cache argument should be a table where component paths are mapped to objects.
+	Other parts of modns allow explicit registration,
+	so this table is exposed to let that happen.
+* opts table:
+	+ "debugger" is a debug tracing function in the style of libmtlog.
+	It is expected to take a single argument when called,
+	a table with the following keys:
+		+ "n", an event name, and
+		+ "args", a table of key-value pairs containing extra data about the event.
+	See loader-defaults.lua for an example implementation.
+
+Again, the reason for all this is to allow mock implementations during testing.
+The loader is a reasonably complex object, so being able to see into it is imperative.
+]]
 
 
 
