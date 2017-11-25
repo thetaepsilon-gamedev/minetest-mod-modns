@@ -3,6 +3,7 @@
 -- a modpath lookup implementation,
 -- a "does this file exist?" implementation,
 -- a list of platform target directores*,
+-- a script loader implementation**,
 -- and a loaded component cache implementation,
 -- this object will take care of loading components as needed.
 -- it supports those component scripts requesting others in turn
@@ -24,6 +25,8 @@ E.g. some components that use the MT api or other MT-specific globals would be i
 but "pure" components and algorithms can go in lib.
 The first found match is always the winner;
 the target directory order for this elsewhere in this mod prefers portable code first.
+
+** This is used instead of directly calling dofile() to make using a testing harness somewhat easier.
 ]]
 
 local strutil = dofile(_modpath.."strutil.lua")
@@ -178,7 +181,7 @@ end
 local load_component_from_file = function(self, pathresult, original)
 	local filepath = find_component_file(self, pathresult, original)
 	if filepath == nil then error("unable to locate source file for component "..original) end
-	return dofile(filepath)
+	return self.fileloader:load(filepath)
 end
 
 
