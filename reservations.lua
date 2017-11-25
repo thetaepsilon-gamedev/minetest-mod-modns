@@ -130,6 +130,10 @@ local locatemodself = function(self, pathstr)
 	local result = paths.parse(pathstr, "mod lookup path")
 	return locate_mod(self.entries, result.tokens), result
 end
+-- same but allow the caller to parse it already
+local locatemodparsed = function(self, path)
+	return locate_mod(self.entries, path)
+end
 
 local reserveself = function(self, pathstring, modname)
 	local label = "namespace reservation [in mod "..modname.."]"
@@ -151,6 +155,7 @@ local construct = function(opts)
 	local entries = {}
 	self.entries = entries
 	self.locate = locatemodself
+	self.locateparsed = locatemodparsed
 	self.reserve = reserveself
 	self.debugger = debugger
 
