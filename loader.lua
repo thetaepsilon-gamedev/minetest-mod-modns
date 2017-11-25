@@ -49,7 +49,6 @@ end
 local allocself = function()
 	local self = {}
 	init_loadstate(self)
-	self.caches = {}
 	return self
 end
 
@@ -288,6 +287,43 @@ local check_impl_deps = function(impl, label, signatures)
 	end
 	return impl
 end
+local signatures = {
+	fileloader = { "load" },
+	filetester = { "exists" },
+	-- FIXME: ask reservations.lua to declare some kind of expected interface here
+	reservations = {},
+	modpathfinder = { "get" },
+}
+local desc = "loader implementation dependencies"
+local check_impl = function(impl)
+	check_impl_deps(impl, desc, signatures)
+	if type(impl.dirpathsep) ~= "string" then
+		error(desc.." needed to contain a dirpathsep string")
+	end
+	return impl
+end
+
+local construct_inner = function(impl, cache, opts)
+	local self = allocself()
+	local debugger = opts.debugger or function() end
+	self.cache = cache
+	self.debugger = debugger
+	self.dirsep = impl.dirpathsep
+	for objname, _ in pairs(signatures) do
+		self[objname] = impl[objname]
+	end
+end
+local construct = function(impl, cache, opts)
+	impl = check_impl(impl)
+	if type(cache) ~= "table" then error("component cache expected to be a table") end
+	local wasnil = (opts == nil)
+	if not wasnil and type(opts) ~= "table" then
+		error("options expected to be a table or not set")
+	end
+	if wasnil then opts = {} end
+	return construct_inner(impl, cache, opts)
+end
+interface.new = construct
 
 
 
