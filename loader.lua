@@ -31,6 +31,7 @@ local paths = dofile(_modpath.."paths.lua")
 local interface = {}
 
 local evprefix = "modns.loader."
+local entirelen = function(t) return t, #t end
 
 
 
@@ -141,6 +142,36 @@ local get_modpath = function(self, pathresult)
 	return modpath, modname
 end
 
+
+
+-- try to locate the file that should be loaded for a given component.
+local ev_testpath = evprefix.."attempt_load_component"
+local ev_located = evprefix.."component_file_found"
+local ev_notfound = evprefix.."component_file_not_found"
+local find_component_file = function(self, pathresult)
+	local debugger = self.debugger
+	local filetester = self.filetester
+	local dirsep = self.dirsep
+	local original = pathresult.type.tostring(entirelen(pathresult.tokens))
+
+	-- work out relative paths, and which mod directory should contain them.
+	local relatives = calculate_relative_paths(self.targetlist, dirsep, pathresult.tokens)
+	local modpath_base, modname = get_modpath(self, pathresult)
+	if modpath_base == nil then return nil end
+
+	local attempts = 0
+	for index, relpath in ipairs(relatives) do
+		attempts = attempts + 1
+		-- construct the full path and ask if it exists.
+		fullpath = modpath_base..dirsep..relpath
+		debugger({n=ev_testpath, args={component=original, fullpath=fullpath, attempt=index}})
+		if filetester:exists(fullpath) then
+			debugger({n=ev_located, args={component=original, at=fullpath}})
+			return fullpath
+		end
+	end
+	debugger({n=ev_notfound, args={component=original, attempts=attempts}})
+end
 
 
 
