@@ -27,7 +27,10 @@ the target directory order for this elsewhere in this mod prefers portable code 
 ]]
 
 local strutil = dofile(_modpath.."strutil.lua")
+local paths = dofile(_modpath.."paths.lua")
 local interface = {}
+
+local evprefix = "modns.loader."
 
 
 
@@ -100,6 +103,44 @@ local calculate_relative_paths = function(targetlist, dirsep, path)
 	return result
 end
 interface.calculate_relative_paths = calculate_relative_paths
+
+
+
+-- find the mod diretory that should own a given path string.
+local ev_modfail = evprefix.."mod_lookup_failed"
+local ev_modfound = evprefix.."owning_mod_located"
+local ev_modnexist = evprefix.."mod_path_failed"
+local ev_modpathfound = evprefix.."mod_path_found"
+local get_modpath = function(self, pathstring)
+	local modpathfinder = self.modpathfinder
+	local reservations = self.reservations
+	local debugger = self.debugger
+
+	local result = paths.parse(pathstring)
+	local path = result.tokens
+
+	local modname, closest = reservations:locateparsed(path)
+	if modname == nil then
+		-- convert the closest match prefix back to a string for error messages
+		local longest = result.type.tostring(path, closest)
+		debugger({n=ev_modfail, args={path=path, closest=longest}})
+		return nil
+	end
+	debugger({n=ev_modfound, args={path=path, modname=modname}})
+
+	-- this is basically equivalent to minetest.get_modpath(modname),
+	-- but is wrapped up so that it can be mimicked outside of MT.
+	local modpath = modpathfinder:get(modname)
+	local ev
+	if modpath ~= nil then
+		ev = {n=ev_modnexist, args={modname=modname}}
+	else
+		ev = {n=ev_modpathfound, args={modname=modname, modpath=modpath}}
+	end
+	debugger(ev)
+	return modpath, modname
+end
+
 
 
 
