@@ -73,6 +73,36 @@ interface.encode_safe_path_component = encode_safe_path_component
 
 
 
+local filter = function(table, f)
+	local ret = {}
+	for key, value in pairs(table) do
+		ret[key] = f(value)
+	end
+	return ret
+end
+
+-- constructs the list of modpath-relative files to attempt loading.
+local calculate_relative_paths = function(targetlist, dirsep, path)
+	local result = {}
+	local initfile = "init"
+	local ext = ".lua"
+	local allinone = encode_safe_filename(path)
+	local safepath = filter(path, encode_safe_path_component)
+
+	for _, target in ipairs(targetlist) do
+		target = target..dirsep
+		table.insert(result, target..allinone..ext)
+		local basepath = table.concat(safepath, dirsep)
+		table.insert(result, target..basepath..ext)
+		table.insert(result, target..basepath..dirsep..initfile..ext)
+	end
+
+	return result
+end
+interface.calculate_relative_paths = calculate_relative_paths
+
+
+
 -- actual component retrieval.
 -- takes the path string to use.
 local getcomponent = function(self, pathstring)
