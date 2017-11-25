@@ -23,14 +23,24 @@ local urimatch = "^"..schemepart..safeurichar.."*$"
 interface.patterns.urimatch = urimatch
 -- strip the scheme and hierachial indicator (the "//") if present
 local uri_handler = function(path)
+	local stripcount
 	path = path:gsub("^"..schemepart, "", 1)
-	path = path:gsub("^//", "", 1)
+	-- The RFC says that // after scheme: is used to indicate hierachical URIs.
+	-- if one is used, make a note of it's removal so we can split the path.
+	path, stripcount = path:gsub("^//", "", 1)
+	local hier = (stripcount == 1)
 	if #path == 0 then return nil end
 	-- a single / above would not have been stripped.
 	-- // is only legal after the "scheme:" to indicate hierachial URIs.
 	-- generally also the first URI component won't begin with a dot.
 	if not path:match("^[a-zA-Z0-9]") then return nil end
-	return { path }
+	if not hier then
+		-- should not be any more slashes if the URI is non-hierachical.
+		if path:find("/") then return nil end
+		return { path }
+	else
+		return strutil.split(path, "/", true)
+	end
 end
 local uri_tostring = function(path, length) return path[1] end
 enum_pathtype.uri = {
