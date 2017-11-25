@@ -148,11 +148,10 @@ end
 local ev_testpath = evprefix.."attempt_load_component"
 local ev_located = evprefix.."component_file_found"
 local ev_notfound = evprefix.."component_file_not_found"
-local find_component_file = function(self, pathresult)
+local find_component_file = function(self, pathresult, original)
 	local debugger = self.debugger
 	local filetester = self.filetester
 	local dirsep = self.dirsep
-	local original = pathresult.type.tostring(entirelen(pathresult.tokens))
 
 	-- work out relative paths, and which mod directory should contain them.
 	local relatives = calculate_relative_paths(self.targetlist, dirsep, pathresult.tokens)
@@ -175,6 +174,15 @@ end
 
 
 
+-- loads a component from file when it is not already in the cache in getcomponent() below.
+local load_component_from_file = function(self, pathresult, original)
+	local filepath = find_component_file(self, pathresult, original)
+	if filepath == nil then error("unable to locate source file for component "..original) end
+	return dofile(filepath)
+end
+
+
+
 -- actual component retrieval.
 -- takes the path string to use.
 local getcomponent = function(self, pathstring)
@@ -186,16 +194,18 @@ local getcomponent = function(self, pathstring)
 	local loadstate = self.loadstate
 	local caches = self.cache
 
-	-- common function to reset the state if we have to throw.
-	-- this ensures that the "locks" for mods won't stay held.
-	local reset_and_throw = function(throwable)
-		init_loadstate(self)
-		error(throwable)
-	end
+	-- first check that we're being asked to load something valid.
+	-- note: this throws on parse failure
+	local pathresult = paths.parse(pathstring)
+	-- re-serialise the string to get the normalised path.
+	local original = pathresult.type.tostring(entirelen(pathresult.tokens))
+	pathstring = original
 
+	-- if we're already in-flight loading this same component,
+	-- something somewhere is causing a dependency cycle.
 	if loadstate.inflight[pathstring] then
 		-- TODO: print out the chain of components causing the cycle
-		reset_and_throw("dependency cycle!")
+		error("dependency cycle!")
 	end
 
 	-- check whether we have the component already cached.
@@ -203,14 +213,24 @@ local getcomponent = function(self, pathstring)
 	local cached = caches[pathstring]
 	if cached ~= nil then return cached end
 
-	reset_and_throw("NotImplemented: modload-dofile")
-
 	-- else we need to go out to a file.
 	-- mark this path as in-flight to catch circular errors.
 	loadstate.inflight[pathstring] = true
 
+	-- catch any errors so we can unwind the inflight state first.
+	local success, result = pcall(load_component_from_file, self, pathresult, original)
+
 	-- clean up at the end.
 	loadstate.inflight[pathstring] = nil
+
+	-- throw any error if not success;
+	-- else insert object into cache and return component to caller
+	if success then
+		caches[pathstring] = result
+		return result
+	else
+		error(result)
+	end
 end
 
 
