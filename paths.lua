@@ -26,6 +26,10 @@ local uri_handler = function(path)
 	path = path:gsub("^"..schemepart, "", 1)
 	path = path:gsub("^//", "", 1)
 	if #path == 0 then return nil end
+	-- a single / above would not have been stripped.
+	-- // is only legal after the "scheme:" to indicate hierachial URIs.
+	-- generally also the first URI component won't begin with a dot.
+	if not path:match("^[a-zA-Z0-9]") then return nil end
 	return { path }
 end
 local uri_tostring = function(path, length) return path[1] end
