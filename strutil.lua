@@ -22,4 +22,19 @@ interface.split = function(str, sep, plainmode)
 	return tokens
 end
 
+-- byte iterator from a string.
+-- each iteration retrieves the next byte as a distinct string.
+local iterator_fn = function(self)
+	local index = self.index
+	local o = self.original
+	if index > #o then return nil end
+
+	self.index = index + 1
+	return o:sub(index, index)
+end
+local mk_byte_iterator = function(str)
+	return iterator_fn, { index=1, original=str }
+end
+interface.mk_byte_iterator = mk_byte_iterator
+
 return interface
