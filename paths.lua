@@ -42,7 +42,7 @@ local uri_handler = function(path)
 		return strutil.split(path, "/", true)
 	end
 end
-local uri_tostring = function(path, length) return path[1] end
+local uri_tostring = function(path, length) return table.concat(path, "/", 1, length) end
 enum_pathtype.uri = {
 	label="uri",
 	matchpattern=urimatch,
