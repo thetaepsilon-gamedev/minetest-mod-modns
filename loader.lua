@@ -275,6 +275,19 @@ Other dependencies and optional components:
 Again, the reason for all this is to allow mock implementations during testing.
 The loader is a reasonably complex object, so being able to see into it is imperative.
 ]]
+local check_impl_deps = function(impl, label, signatures)
+	if type(impl) ~= "table" then error("expected table for: "..label) end
+	for name, signature in pairs(signatures) do
+		local dep = impl[name]
+		if type(dep) ~= "table" then error("expected impl dependency to be a table: "..name) end
+		for index, method in pairs(signature) do
+			if type(dep[method]) ~= "function" then
+				error("expected dependency to have method: "..method.." in "..name)
+			end
+		end
+	end
+	return impl
+end
 
 
 
