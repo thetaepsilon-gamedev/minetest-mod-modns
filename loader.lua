@@ -111,12 +111,12 @@ local ev_modfail = evprefix.."mod_lookup_failed"
 local ev_modfound = evprefix.."owning_mod_located"
 local ev_modnexist = evprefix.."mod_path_failed"
 local ev_modpathfound = evprefix.."mod_path_found"
-local get_modpath = function(self, pathstring)
+local get_modpath = function(self, pathresult)
 	local modpathfinder = self.modpathfinder
 	local reservations = self.reservations
 	local debugger = self.debugger
 
-	local result = paths.parse(pathstring)
+	local result = pathresult
 	local path = result.tokens
 
 	local modname, closest = reservations:locateparsed(path)
