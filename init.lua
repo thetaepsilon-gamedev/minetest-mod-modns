@@ -47,12 +47,21 @@ _modpath = modpath
 local reservations = dofile(modpath.."reservations.lua")
 local loader_defaults = dofile(modpath.."loader-defaults.lua")
 local modpathioimpl, modfinder = dofile(modpath.."impl-mt.lua")
+local loaderlib = dofile(modpath.."loader.lua")
 _modpath = nil
-
-
+local debugger = loader_defaults.mk_debugger(print, "[modns] ")
 
 local prefixes = reservations.new({debugger=debugger})
 reservations.populate(prefixes, minetest.get_modnames(), modpathioimpl)
+
+local loader_impl = {
+	fileloader = loader_defaults.mk_fileloader(),
+	reservations = prefixes,
+	filetester = loader_defaults.mk_filetester(),
+	modpathfinder = modfinder,
+	dirpathsep = dirsep,
+}
+local loader = loaderlib.new(loader_impl, registered, {debugger=debugger})
 
 
 
