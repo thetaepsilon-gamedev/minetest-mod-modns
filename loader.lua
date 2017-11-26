@@ -137,7 +137,7 @@ local get_modpath = function(self, pathresult)
 	-- but is wrapped up so that it can be mimicked outside of MT.
 	local modpath = modpathfinder:get(modname)
 	local ev
-	if modpath ~= nil then
+	if modpath == nil then
 		ev = {n=ev_modnexist, args={modname=modname}}
 	else
 		ev = {n=ev_modpathfound, args={modname=modname, modpath=modpath}}
