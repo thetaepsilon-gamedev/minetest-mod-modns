@@ -43,7 +43,7 @@ local dumptable = function(t)
 end
 local mk_debugger = function(print, prefix)
 	return function(ev)
-		print(prefix..ev.n..dumptable(ev.args))
+		print(prefix..ev.n..dumptable(ev.args or {}))
 	end
 end
 interface.mk_debugger = mk_debugger
