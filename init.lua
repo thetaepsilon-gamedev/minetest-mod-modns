@@ -123,6 +123,29 @@ end
 
 
 
+-- helpers to create a parent namespace which is simply a table housing sub-namespaces.
+local dname = "mk_parent_ns_noauto() "
+local mk_parent_ns_noauto = function(list, base, sep)
+	local result = {}
+	for _, sub in ipairs(list) do
+		local subpath = base..sep..sub
+		result[sub] = mtrequire(subpath)
+	end
+	return result
+end
+
+local dname = "mk_parent_ns() "
+local mk_parent_ns = function(list)
+	local inflight, ptype = loader:get_current_inflight()
+	if not inflight then error(dname.."must be invoked via dynamic loading of another file") end
+	local sep = ptype.pathsep
+	if not sep then error(dname.."auto path deduction failure: path type "..ptype.label.." doesn't support separator concatenation")
+	return mk_parent_ns_noauto(list, inflight, sep)
+end
+
+
+
+
 modns = {
 	register = function(path, component, isdeprecated, opts)
 		if not opts then opts = {} end
@@ -168,6 +191,8 @@ modns = {
 		return checkexists(path)
 	end,
 	deepcopy = deepcopy,
+	mk_parent_ns = mk_parent_ns,
+	mk_parent_ns_noauto = mk_parent_ns_noauto,
 }
 
 minetest.log("info", "modns interface now exported")
