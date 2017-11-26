@@ -116,7 +116,7 @@ local ev_modfail = evprefix.."mod_lookup_failed"
 local ev_modfound = evprefix.."owning_mod_located"
 local ev_modnexist = evprefix.."mod_path_failed"
 local ev_modpathfound = evprefix.."mod_path_found"
-local get_modpath = function(self, pathresult)
+local get_modpath = function(self, pathresult, original)
 	local modpathfinder = self.modpathfinder
 	local reservations = self.reservations
 	local debugger = self.debugger
@@ -125,13 +125,13 @@ local get_modpath = function(self, pathresult)
 	local path = result.tokens
 
 	local modname, closest = reservations:locateparsed(path)
+	-- convert the closest match prefix back to a string for tracing/error messages
+	local longest = result.type.tostring(path, closest)
 	if modname == nil then
-		-- convert the closest match prefix back to a string for error messages
-		local longest = result.type.tostring(path, closest)
-		debugger({n=ev_modfail, args={path=path, closest=longest}})
+		debugger({n=ev_modfail, args={path=original, closest=longest}})
 		return nil
 	end
-	debugger({n=ev_modfound, args={path=path, modname=modname}})
+	debugger({n=ev_modfound, args={path=original, modname=modname, parent_ns=longest}})
 
 	-- this is basically equivalent to minetest.get_modpath(modname),
 	-- but is wrapped up so that it can be mimicked outside of MT.
@@ -159,7 +159,7 @@ local find_component_file = function(self, pathresult, original)
 
 	-- work out relative paths, and which mod directory should contain them.
 	local relatives = calculate_relative_paths(self.targetlist, dirsep, pathresult.tokens)
-	local modpath_base, modname = get_modpath(self, pathresult)
+	local modpath_base, modname = get_modpath(self, pathresult, original)
 	if modpath_base == nil then return nil, "no mod claims that namespace" end
 
 	local attempts = 0
