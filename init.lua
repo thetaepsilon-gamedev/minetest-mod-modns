@@ -43,19 +43,18 @@ end
 
 
 
--- WIP
--- early start-up: check all installed mods for any namespace declarations.
--- mod conflicts cause errors; they should pick a unique namespace for themselves.
 _modpath = modpath
 local reservations = dofile(modpath.."reservations.lua")
+local loader_defaults = dofile(modpath.."loader-defaults.lua")
+local modpathioimpl, modfinder = dofile(modpath.."impl-mt.lua")
 _modpath = nil
-local modpathioimpl = {
-	open = function(self, modname, filename)
-		return io.open(minetest.get_modpath(modname)..dirsep..filename, "r")
-	end
-}
+
+
+
 local prefixes = reservations.new({debugger=debugger})
 reservations.populate(prefixes, minetest.get_modnames(), modpathioimpl)
+
+
 
 -- check a path's validity and return the mod name that reserves it, if any.
 -- returns the same as reservations:locate(),
