@@ -229,12 +229,14 @@ local getcomponent = function(self, pathstring)
 	-- else we need to go out to a file.
 	-- mark this path as in-flight to catch circular errors.
 	loadstate.inflight[pathstring] = true
+	loadstate.current = pathstring
 
 	-- catch any errors so we can unwind the inflight state first.
 	local success, result = pcall(load_component_from_file, self, pathresult, original)
 
 	-- clean up at the end.
 	loadstate.inflight[pathstring] = nil
+	loadstate.current = nil
 
 	-- throw any error if not success;
 	-- else insert object into cache and return component to caller
@@ -244,6 +246,15 @@ local getcomponent = function(self, pathstring)
 	else
 		error(result)
 	end
+end
+
+
+
+-- get the currently-being-loaded mod, if any.
+-- used by calls to the modns object while inside another file;
+-- see mk_parent_ns() in init.lua.
+local get_current_inflight = function(self)
+	return self.loadstate.current
 end
 
 
@@ -323,6 +334,7 @@ local construct_inner = function(impl, cache, opts)
 		self[objname] = impl[objname]
 	end
 	self.get = getcomponent
+	self.get_current_inflight = get_current_inflight
 	return self
 end
 local construct = function(impl, cache, opts)
