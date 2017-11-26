@@ -166,7 +166,7 @@ local find_component_file = function(self, pathresult, original)
 	for index, relpath in ipairs(relatives) do
 		attempts = attempts + 1
 		-- construct the full path and ask if it exists.
-		fullpath = modpath_base..dirsep..relpath
+		local fullpath = modpath_base..dirsep..relpath
 		debugger({n=ev_testpath, args={component=original, fullpath=fullpath, attempt=index}})
 		if filetester:exists(fullpath) then
 			debugger({n=ev_located, args={component=original, at=fullpath}})
