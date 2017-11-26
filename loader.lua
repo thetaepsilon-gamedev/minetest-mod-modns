@@ -160,7 +160,7 @@ local find_component_file = function(self, pathresult, original)
 	-- work out relative paths, and which mod directory should contain them.
 	local relatives = calculate_relative_paths(self.targetlist, dirsep, pathresult.tokens)
 	local modpath_base, modname = get_modpath(self, pathresult)
-	if modpath_base == nil then return nil end
+	if modpath_base == nil then return nil, "no mod claims that namespace" end
 
 	local attempts = 0
 	for index, relpath in ipairs(relatives) do
@@ -174,14 +174,16 @@ local find_component_file = function(self, pathresult, original)
 		end
 	end
 	debugger({n=ev_notfound, args={component=original, attempts=attempts}})
+	return nil, "mod "..modname.." registered that namespace but did not have that component"
 end
 
 
 
 -- loads a component from file when it is not already in the cache in getcomponent() below.
 local load_component_from_file = function(self, pathresult, original)
-	local filepath = find_component_file(self, pathresult, original)
-	if filepath == nil then error("unable to locate source file for component "..original) end
+	local filepath, reason = find_component_file(self, pathresult, original)
+	if not reason then reason = "" end
+	if filepath == nil then error("unable to locate source file for component "..original..": "..reason) end
 	return self.fileloader:load(filepath)
 end
 
