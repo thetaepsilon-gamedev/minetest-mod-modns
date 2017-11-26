@@ -139,7 +139,7 @@ local mk_parent_ns = function(list)
 	local inflight, ptype = loader:get_current_inflight()
 	if not inflight then error(dname.."must be invoked via dynamic loading of another file") end
 	local sep = ptype.pathsep
-	if not sep then error(dname.."auto path deduction failure: path type "..ptype.label.." doesn't support separator concatenation")
+	if not sep then error(dname.."auto path deduction failure: path type "..ptype.label.." doesn't support separator concatenation") end
 	return mk_parent_ns_noauto(list, inflight, sep)
 end
 
