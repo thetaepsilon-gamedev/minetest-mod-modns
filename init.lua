@@ -86,7 +86,7 @@ end
 
 -- "require" equivalent for MT mods, performs lookup and retreival.
 -- lint note: intentional global assigmnent
-mtrequire = function(path)
+function mtrequire(path)
 	checkpath(path)
 	local invoker = tostring(minetest.get_current_modname())
 	local result
@@ -102,12 +102,11 @@ mtrequire = function(path)
 	end
 
 	if compat_alias then
-		return get(compat_alias)
+		return mtrequire(compat_alias)
 	end
 
-	local obj = registered[path]
+	local obj = loader:get(path)
 	if obj then
-		logaccess("retrieving mod object")
 		result = deepcopy(obj)
 	else
 		logaction(log_error, "mod "..invoker.." tried to retrieve non-existant component "..path)
