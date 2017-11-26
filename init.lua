@@ -27,7 +27,7 @@ local debugger = function(ev)
 	logaction(log_trace, ev.n..args)
 end
 
-local deepcopy = table.copy
+local deepcopy = dofile(modpath.."deepcopy.lua")
 
 local tvisit = dofile(modpath.."tvisit.lua")
 
