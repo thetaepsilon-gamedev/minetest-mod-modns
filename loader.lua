@@ -312,6 +312,8 @@ local construct_inner = function(impl, cache, opts)
 	for objname, _ in pairs(signatures) do
 		self[objname] = impl[objname]
 	end
+	self.get = getcomponent
+	return self
 end
 local construct = function(impl, cache, opts)
 	impl = check_impl(impl)
