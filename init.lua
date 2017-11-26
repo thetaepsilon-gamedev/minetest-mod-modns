@@ -54,12 +54,17 @@ local debugger = loader_defaults.mk_debugger(print, "[modns] ")
 local prefixes = reservations.new({debugger=debugger})
 reservations.populate(prefixes, minetest.get_modnames(), modpathioimpl)
 
+local mt_target_list = {
+	"lib",
+	"natives/minetest",
+}
 local loader_impl = {
 	fileloader = loader_defaults.mk_fileloader(),
 	reservations = prefixes,
 	filetester = loader_defaults.mk_filetester(),
 	modpathfinder = modfinder,
 	dirpathsep = dirsep,
+	targetlist = mt_target_list,
 }
 local loader = loaderlib.new(loader_impl, registered, {debugger=debugger})
 

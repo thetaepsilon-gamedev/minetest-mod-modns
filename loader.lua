@@ -300,6 +300,7 @@ local signatures = {
 	-- FIXME: ask reservations.lua to declare some kind of expected interface here
 	reservations = {},
 	modpathfinder = { "get" },
+	targetlist = {},
 }
 local desc = "loader implementation dependencies"
 local check_impl = function(impl)
