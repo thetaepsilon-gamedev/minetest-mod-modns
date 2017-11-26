@@ -11,7 +11,7 @@ local modopen = function(self, modname, relpath)
 	local sep = self.dirsep
 	local path = self.mp(modname)
 	if path == nil then return nil end
-	return path..sep..relpath
+	return io.open(path..sep..relpath, "r")
 end
 local ioimpl = {
 	dirsep=dirsep,
