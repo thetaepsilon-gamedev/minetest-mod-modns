@@ -7,6 +7,8 @@ local modname = minetest.get_current_modname()
 local dirsep = "/"
 local modpath = minetest.get_modpath(modname)..dirsep
 
+local debugmode = false
+
 
 
 -- I'm thinking of putting this in it's own mod.
@@ -49,7 +51,10 @@ local loader_defaults = dofile(modpath.."loader-defaults.lua")
 local modpathioimpl, modfinder = dofile(modpath.."impl-mt.lua")
 local loaderlib = dofile(modpath.."loader.lua")
 _modpath = nil
+
 local debugger = loader_defaults.mk_debugger(print, "[modns] ")
+local filterlist = dofile(modpath.."log-filter-list.lua")
+if not debugmode then debugger = loader_defaults.mk_debug_filter(debugger, filterlist) end
 
 local prefixes = reservations.new({debugger=debugger})
 reservations.populate(prefixes, minetest.get_modnames(), modpathioimpl)

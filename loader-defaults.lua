@@ -48,4 +48,12 @@ local mk_debugger = function(print, prefix)
 end
 interface.mk_debugger = mk_debugger
 
+-- debug filter:
+-- blocks event names from an array, allows others.
+interface.mk_debug_filter = function(lowerfunc, blocked)
+	return function(ev)
+		if not blocked[ev.n] then return lowerfunc(ev) end
+	end
+end
+
 return interface
