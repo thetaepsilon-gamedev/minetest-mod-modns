@@ -48,6 +48,7 @@ enum_pathtype.uri = {
 	matchpattern=urimatch,
 	handler=uri_handler,
 	tostring=uri_tostring,
+	pathsep="/",
 }
 
 
@@ -76,6 +77,7 @@ enum_pathtype.java = {
 	matchpattern=javamatch,
 	handler=java_handler,
 	tostring=java_tostring,
+	pathsep=".",
 }
 
 
