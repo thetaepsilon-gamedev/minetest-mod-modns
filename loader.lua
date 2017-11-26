@@ -189,6 +189,8 @@ end
 
 -- actual component retrieval.
 -- takes the path string to use.
+local ev_cachehit = evprefix.."cache_hit"
+local ev_cachemiss = evprefix.."cache_miss"
 local getcomponent = function(self, pathstring)
 	-- objects are only added to the array when completely loaded.
 	-- however, if two files circularly depend on each other via mtrequire(),
@@ -197,6 +199,7 @@ local getcomponent = function(self, pathstring)
 	-- circular references result in an error.
 	local loadstate = self.loadstate
 	local caches = self.cache
+	local debugger = self.debugger
 
 	-- first check that we're being asked to load something valid.
 	-- note: this throws on parse failure
@@ -215,7 +218,11 @@ local getcomponent = function(self, pathstring)
 	-- check whether we have the component already cached.
 	-- if so, return that directly.
 	local cached = caches[pathstring]
-	if cached ~= nil then return cached end
+	local ev_args = { component=pathstring }
+	local hit = cached ~= nil
+	local evn = hit and ev_cachehit or ev_cachemiss
+	debugger({n=evn, args=ev_args})
+	if hit then return cached end
 
 	-- else we need to go out to a file.
 	-- mark this path as in-flight to catch circular errors.
